@@ -156,7 +156,10 @@ class DivisionRecommendationSystem:
         inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
         with torch.no_grad():
             outputs = self.model(**inputs)
-        return outputs.last_hidden_state[0][0].numpy()
+
+        cls_token = outputs.last_hidden_state[:, 0, :]  # ambil seluruh vektor [CLS]
+        return cls_token.squeeze().cpu().numpy()
+
 
     def get_recommendations(self, cv_path, certificate_paths=None):
         full_text = self.extract_text(cv_path)
