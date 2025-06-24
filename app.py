@@ -10,14 +10,14 @@ os.makedirs("CV_Mahasiswa", exist_ok=True)
 os.makedirs("Sertif_Mahasiswa", exist_ok=True)
 rekomendasi = DivisionRecommendationSystem()
 
-st.title("Sistem Rekomendasi Divisi ITCC")
+st.title("Sistem Rekomendasi Penempatan Divisi ITCC")
 
 with st.form("upload_form"):
     nama = st.text_input("Nama Mahasiswa")
     email = st.text_input("Email (opsional)")
     cv_file = st.file_uploader("Upload CV (PDF)", type="pdf")
     sertif_files = st.file_uploader("Upload Sertifikat (PDF)", type="pdf", accept_multiple_files=True)
-    submitted = st.form_submit_button("Proses Rekomendasi")
+    submitted = st.form_submit_button("Rekomendasikan")
 
 if submitted and nama and cv_file:
     user_id = save_user(nama, email)
