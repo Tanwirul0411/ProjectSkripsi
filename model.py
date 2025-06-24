@@ -146,6 +146,8 @@ class DivisionRecommendationSystem:
         return text
 
     def clean_text(self, text):
+        if not isinstance(text, str):  # ✅ Hindari error jika bukan string
+            return ""
         text = text.lower()
         text = re.sub(r'\n+', ' ', text)
         text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
@@ -156,10 +158,8 @@ class DivisionRecommendationSystem:
         inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
         with torch.no_grad():
             outputs = self.model(**inputs)
-
-        cls_token = outputs.last_hidden_state[:, 0, :]  # ambil seluruh vektor [CLS]
+        cls_token = outputs.last_hidden_state[:, 0, :]  # [CLS] token vector
         return cls_token.squeeze().cpu().numpy()
-
 
     def get_recommendations(self, cv_path, certificate_paths=None):
         full_text = self.extract_text(cv_path)
@@ -171,8 +171,10 @@ class DivisionRecommendationSystem:
 
         results = []
         for div, desc in self.divisions.items():
-            desc_vec = self.get_cls_embedding(self.clean_text(desc))
+            desc_text = " ".join(desc)  # ✅ Gabungkan list keyword jadi string
+            desc_vec = self.get_cls_embedding(self.clean_text(desc_text))
             similarity = cosine_similarity([user_vector], [desc_vec])[0][0]
             results.append((div, similarity))
+
         results.sort(key=lambda x: x[1], reverse=True)
         return results
