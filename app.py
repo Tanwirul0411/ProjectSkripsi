@@ -10,7 +10,7 @@ os.makedirs("CV_Mahasiswa", exist_ok=True)
 os.makedirs("Sertif_Mahasiswa", exist_ok=True)
 rekomendasi = DivisionRecommendationSystem()
 
-st.title("📊 Sistem Rekomendasi Divisi ITCC")
+st.title("Sistem Rekomendasi Divisi ITCC")
 
 with st.form("upload_form"):
     nama = st.text_input("Nama Mahasiswa")
