@@ -1,7 +1,8 @@
 streamlit
 matplotlib
-pymupdf
+pandas
+xlsxwriter
 torch
 transformers
 scikit-learn
-pandas
+pymupdf
