@@ -18,9 +18,9 @@ class DivisionRecommendationSystem:
                 'flask', 'spring', 'laravel', 'codeigniter', 'bootstrap', 'jquery',
                 'git', 'github', 'docker', 'kubernetes', 'aws', 'azure', 'gcp',
                 'linux', 'ubuntu', 'centos', 'windows server', 'apache', 'nginx',
-                'programming', 'developer', 'software engineer', 'web developer',
-                'full stack', 'frontend', 'backend', 'database', 'api', 'rest api',
-                'microservices', 'devops', 'cloud', 'cybersecurity', 'network',
+                'programming', 'developer', 'software engineer', 'seo', 'sem', 'google ads',
+                'web developer', 'full stack', 'frontend', 'backend', 'database', 'api',
+                'microservices', 'devops', 'cloud', 'cybersecurity', 'network', 'rest api',
                 'artificial intelligence', 'machine learning', 'data science',
                 'big data', 'analytics', 'tensorflow', 'pytorch', 'scikit-learn',
                 'system administrator', 'it support', 'technical support',
@@ -52,13 +52,13 @@ class DivisionRecommendationSystem:
                 'pro tools', 'audacity', 'logic pro', 'ableton', 'creative writing',
                 'copywriting', 'storytelling', 'scriptwriting', 'content writing',
                 'youtube', 'instagram', 'tiktok', 'facebook', 'twitter', 'linkedin',
-                'marketing digital', 'seo', 'sem', 'google ads', 'facebook ads',
+                'marketing digital', 'facebook ads',
                 # Bahasa Indonesia - Media Creation
                 'desain grafis', 'desainer grafis', 'editing video', 'editor video',
                 'fotografi', 'fotografer', 'videografi', 'videographer', 'animator',
                 'animasi', 'motion graphic', 'konten kreator', 'pembuat konten',
                 'media sosial', 'sosial media', 'pemasaran digital', 'digital marketing',
-                'branding', 'logo', 'identitas visual', 'kreatif', 'seni',
+                'branding', 'logo', 'identitas visual', 'kreatif', 'seni', 'video editing',
                 'multimedia', 'audio visual', 'sinematografi', 'produksi video',
                 'editing audio', 'sound engineer', 'musik', 'suara', 'podcast',
                 'copywriter', 'penulis konten', 'content writer', 'storytelling',
@@ -146,6 +146,8 @@ class DivisionRecommendationSystem:
         return text
 
     def clean_text(self, text):
+        if not isinstance(text, str):  # Hindari error jika bukan string
+            return ""
         text = text.lower()
         text = re.sub(r'\n+', ' ', text)
         text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
@@ -156,10 +158,8 @@ class DivisionRecommendationSystem:
         inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
         with torch.no_grad():
             outputs = self.model(**inputs)
-
-        cls_token = outputs.last_hidden_state[:, 0, :]  # ambil seluruh vektor [CLS]
+        cls_token = outputs.last_hidden_state[:, 0, :]  # [CLS] token vector
         return cls_token.squeeze().cpu().numpy()
-
 
     def get_recommendations(self, cv_path, certificate_paths=None):
         full_text = self.extract_text(cv_path)
@@ -171,8 +171,10 @@ class DivisionRecommendationSystem:
 
         results = []
         for div, desc in self.divisions.items():
-            desc_vec = self.get_cls_embedding(self.clean_text(desc))
+            desc_text = " ".join(desc)  # 
+            desc_vec = self.get_cls_embedding(self.clean_text(desc_text))
             similarity = cosine_similarity([user_vector], [desc_vec])[0][0]
             results.append((div, similarity))
+
         results.sort(key=lambda x: x[1], reverse=True)
         return results
