@@ -27,13 +27,16 @@ with st.form("upload_form"):
         accept_multiple_files=True
     )
 
+    invalid_file_count = False
+
     if sertif_files and len(sertif_files) > 3:
-        st.warning("⚠️ Maksimal hanya boleh mengunggah 3 sertifikat. Yang lainnya akan diabaikan.")
-        sertif_files = sertif_files[:3]
+        st.error("❌ Anda hanya dapat mengunggah maksimal 3 sertifikat.")
+        st.info(f"Jumlah sertifikat yang diunggah: {len(sertif_files)} file.")
+        invalid_file_count = True
 
     submitted = st.form_submit_button("Rekomendasikan")
 
-if submitted and nama and cv_file:
+if submitted and not invalid_file_count and nama and cv_file:
     user_id = save_user(nama, email)
 
     cv_path = os.path.join("CV_Mahasiswa", cv_file.name)
@@ -160,4 +163,4 @@ if submitted and nama and cv_file:
     )
 
 else:
-    st.info("Silakan lengkapi form dan upload minimal CV untuk mulai.")
+    st.info("Silakan lengkapi form dan upload minimal CV untuk mulai pemrosesan.")
