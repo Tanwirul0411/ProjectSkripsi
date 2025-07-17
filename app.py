@@ -5,6 +5,7 @@ from db import init_db, save_user, save_document
 import pandas as pd
 import matplotlib.pyplot as plt
 import io
+import re
 import xlsxwriter
 
 # Inisialisasi
@@ -19,10 +20,10 @@ st.markdown("<br>", unsafe_allow_html=True)
 with st.form("upload_form"):
     nama = st.text_input("Nama Mahasiswa")
     email = st.text_input("Email (opsional)")
-    cv_file = st.file_uploader("Upload CV (PDF)", type="pdf")
+    cv_file = st.file_uploader("Upload CV (wajib) — format PDF", type="pdf")
     
     sertif_files = st.file_uploader(
-        "Upload Sertifikat (opsional, maks. 3 file, PDF)",
+        "Upload Sertifikat (opsional, maks. 3 file) — format PDF",
         type="pdf",
         accept_multiple_files=True
     )
@@ -37,6 +38,11 @@ with st.form("upload_form"):
     submitted = st.form_submit_button("Rekomendasikan")
 
 if submitted and not invalid_file_count and nama and cv_file:
+    
+    if email and not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        st.warning("⚠️ Format email tidak valid. Silakan periksa kembali.")
+        st.stop()
+
     user_id = save_user(nama, email)
 
     cv_path = os.path.join("CV_Mahasiswa", cv_file.name)
@@ -162,5 +168,5 @@ if submitted and not invalid_file_count and nama and cv_file:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-else:
-    st.info("Silakan lengkapi form dan upload minimal CV untuk mulai pemrosesan.")
+elif submitted:
+    st.error("Mohon sesuaikan form dengan mengupload minimal 1 CV untuk mulai pemrosesan.")
