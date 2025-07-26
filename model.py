@@ -12,7 +12,6 @@ class DivisionRecommendationSystem:
         self.model = BertModel.from_pretrained("indobenchmark/indobert-base-p1")
         self.divisions = {
             'Information Technology (IT)': [
-                # ... (daftar keyword tidak berubah)
                 'python', 'java', 'javascript', 'html', 'css', 'php', 'sql', 'mysql', 
                 'postgresql', 'mongodb', 'react', 'angular', 'vue', 'nodejs', 'django',
                 'flask', 'spring', 'laravel', 'codeigniter', 'bootstrap', 'jquery',
@@ -38,7 +37,6 @@ class DivisionRecommendationSystem:
             ],
             
             'Media Creation (MC)': [
-                # ... (daftar keyword tidak berubah)
                 'photoshop', 'illustrator', 'indesign', 'after effects', 'premiere pro',
                 'final cut', 'davinci resolve', 'lightroom', 'figma', 'sketch',
                 'adobe creative', 'corel draw', 'canva', 'blender', '3ds max', 'maya',
@@ -68,7 +66,6 @@ class DivisionRecommendationSystem:
             ],
             
             'Education & Publishing (EnP)': [
-                # ... (daftar keyword tidak berubah)
                 'teacher', 'educator', 'instructor', 'lecturer', 'professor', 'tutor',
                 'curriculum', 'pedagogy', 'educational', 'teaching', 'training',
                 'learning management', 'e-learning', 'online learning', 'moodle',
@@ -99,7 +96,6 @@ class DivisionRecommendationSystem:
             ],
             
             'Administration & Finance': [
-                # ... (daftar keyword tidak berubah)
                 'accounting', 'bookkeeping', 'financial', 'finance', 'budget',
                 'auditing', 'tax', 'payroll', 'invoice', 'receipt', 'expenses',
                 'revenue', 'profit', 'loss', 'balance sheet', 'income statement',
@@ -132,7 +128,11 @@ class DivisionRecommendationSystem:
                 'operasional', 'logistik', 'supply chain', 'pengadaan', 'procurement',
                 'vendor', 'kontrak', 'negosiasi', 'customer service', 'layanan pelanggan',
                 'komunikasi', 'excel', 'spreadsheet', 'pivot table', 'laporan',
-                'dashboard', 'forecasting', 'peramalan', 'modeling keuangan'
+                'dashboard', 'forecasting', 'peramalan', 'modeling keuangan',
+                'analis keuangan', 'pasar modal', 'saham', 'obligasi', 'reksadana',
+                'manajemen aset', 'aset', 'liabilitas', 'ekuitas', 'laporan laba rugi',
+                'neraca saldo', 'teller', 'simpanan', 'giro', 'tabungan', 'deposito',
+                'pembukuan', 'jurnal', 'akuntan publik', 'pajak penghasilan', 'pph', 'ppn'
             ]
         }
 
@@ -182,15 +182,30 @@ class DivisionRecommendationSystem:
             similarity = cosine_similarity([user_vector], [desc_vec])[0][0]
             results.append({'divisi': div, 'skor': similarity})
 
-        # --- LANGKAH 3: LOGIKA PENDORONG SKOR GANDA ---
+        # --- LANGKAH 3: LOGIKA PENDORONG SKOR UNTUK SEMUA DIVISI ---
         
+        # --- PENDORONG UNTUK IT ---
+        it_trigger_keywords = [
+            'backend', 'frontend', 'full stack', 'devops', 'programmer',
+            'software engineer', 'network engineer', 'keamanan siber', 'jaringan komputer'
+        ]
+        it_trigger_count = 0
+        for keyword in it_trigger_keywords:
+            if keyword in cleaned_full_text:
+                it_trigger_count += 1
+        
+        if it_trigger_count >= 2: # Cukup 2 untuk IT karena istilahnya sangat spesifik
+            for res in results:
+                if res['divisi'] == 'Information Technology (IT)':
+                    res['skor'] *= 1.10
+                    break
+
         # --- PENDORONG UNTUK MEDIA CREATION ---
         mc_trigger_keywords = [
             'photoshop', 'illustrator', 'premiere', 'after effects', 'final cut',
             'editing video', 'desain grafis', 'fotografi', 'videografi',
             'kameramen', 'animasi', 'blender', 'figma', 'multimedia'
         ]
-        
         mc_trigger_count = 0
         for keyword in mc_trigger_keywords:
             if keyword in cleaned_full_text:
@@ -202,21 +217,37 @@ class DivisionRecommendationSystem:
                     res['skor'] *= 1.10
                     break
         
-        # --- PENDORONG BARU UNTUK ADMINISTRATION & FINANCE ---
-        admin_trigger_keywords = [
-            'sekretaris', 'administrasi', 'surat menyurat', 'pengarsipan',
-            'menyusun laporan', 'dokumentasi', 'menjadwalkan rapat'
+        # --- PENDORONG UNTUK ADMINISTRATION & FINANCE ---
+        admfin_trigger_keywords = [
+            'sekretaris', 'bendahara', 'administrasi', 'surat menyurat', 'pengarsipan',
+            'menyusun laporan', 'dokumentasi', 'pajak', 'akuntansi', 'akuntan', 
+            'pembukuan', 'laporan keuangan', 'finansial', 'anggaran', 'audit', 'faktur'
         ]
-
         admin_trigger_count = 0
-        for keyword in admin_trigger_keywords:
+        for keyword in admfin_trigger_keywords:
             if keyword in cleaned_full_text:
                 admin_trigger_count += 1
 
         if admin_trigger_count >= 3:
             for res in results:
                 if res['divisi'] == 'Administration & Finance':
-                    res['skor'] *= 1.10 # Diberi bonus sedikit lebih tinggi (10%) untuk kepastian
+                    res['skor'] *= 1.10
+                    break
+        
+        # --- PENDORONG UNTUK EDUCATION & PUBLISHING ---
+        enp_trigger_keywords = [
+            'guru', 'pengajar', 'dosen', 'instruktur', 'pendidik', 'tutor',
+            'kurikulum', 'silabus', 'pelatihan', 'mengajar', 'penulis', 'editor'
+        ]
+        enp_trigger_count = 0
+        for keyword in enp_trigger_keywords:
+            if keyword in cleaned_full_text:
+                enp_trigger_count += 1
+
+        if enp_trigger_count >= 3:
+            for res in results:
+                if res['divisi'] == 'Education & Publishing (EnP)':
+                    res['skor'] *= 1.10
                     break
 
         # --- LANGKAH 4: URUTKAN HASIL AKHIR ---
