@@ -49,7 +49,7 @@ class DivisionRecommendationSystem:
                 'pro tools', 'audacity', 'logic pro', 'ableton', 'creative writing',
                 'copywriting', 'storytelling', 'scriptwriting', 'content writing',
                 'youtube', 'instagram', 'tiktok', 'facebook', 'twitter', 'linkedin',
-                'marketing digital', 'facebook ads',
+                'marketing digital', 'facebook ads', 'powerpoint',
                 'desain grafis', 'desainer grafis', 'editing video', 'editor video',
                 'fotografi', 'fotografer', 'videografi', 'videographer', 'animator',
                 'animasi', 'motion graphic', 'konten kreator', 'pembuat konten',
@@ -76,7 +76,7 @@ class DivisionRecommendationSystem:
                 'content development', 'textbook', 'course material', 'syllabus',
                 'lesson plan', 'educational content', 'training material',
                 'workshop', 'seminar', 'conference', 'presentation', 'public speaking',
-                'microsoft office', 'word', 'powerpoint', 'excel', 'google docs',
+                'microsoft office', 'google docs', 'penulisan', 'shortcut'
                 'latex', 'mendeley', 'zotero', 'endnote', 'citation', 'bibliography',
                 'academic writing', 'technical writing', 'documentation',
                 'knowledge management', 'library science', 'information science',
@@ -236,8 +236,8 @@ class DivisionRecommendationSystem:
         
         # --- PENDORONG UNTUK EDUCATION & PUBLISHING ---
         enp_trigger_keywords = [
-            'guru', 'pengajar', 'dosen', 'instruktur', 'pendidik', 'tutor',
-            'kurikulum', 'silabus', 'pelatihan', 'mengajar', 'penulis', 'editor'
+            'guru', 'pengajar', 'dosen', 'instruktur', 'pendidik', 'jurnal',
+            'publikasi', 'silabus', 'pelatihan', 'mengajar', 'penulis', 'editor'
         ]
         enp_trigger_count = 0
         for keyword in enp_trigger_keywords:
