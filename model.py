@@ -12,7 +12,7 @@ class DivisionRecommendationSystem:
         self.model = BertModel.from_pretrained("indobenchmark/indobert-base-p1")
         self.divisions = {
             'Information Technology (IT)': [
-                # Bahasa Programming & Framework
+                # ... (daftar keyword tidak berubah)
                 'python', 'java', 'javascript', 'html', 'css', 'php', 'sql', 'mysql', 
                 'postgresql', 'mongodb', 'react', 'angular', 'vue', 'nodejs', 'django',
                 'flask', 'spring', 'laravel', 'codeigniter', 'bootstrap', 'jquery',
@@ -26,7 +26,6 @@ class DivisionRecommendationSystem:
                 'system administrator', 'it support', 'technical support',
                 'cisco', 'comptia', 'microsoft certified', 'oracle certified',
                 'red hat', 'vmware', 'citrix', 'networking', 'firewall', 'router',
-                # Bahasa Indonesia - IT
                 'pemrograman', 'pengembang', 'programmer', 'developer', 'sistem informasi',
                 'teknologi informasi', 'basis data', 'database', 'jaringan komputer',
                 'keamanan siber', 'administrator sistem', 'dukungan teknis', 'support teknis',
@@ -39,7 +38,7 @@ class DivisionRecommendationSystem:
             ],
             
             'Media Creation (MC)': [
-                # Software & Tools
+                # ... (daftar keyword tidak berubah)
                 'photoshop', 'illustrator', 'indesign', 'after effects', 'premiere pro',
                 'final cut', 'davinci resolve', 'lightroom', 'figma', 'sketch',
                 'adobe creative', 'corel draw', 'canva', 'blender', '3ds max', 'maya',
@@ -53,7 +52,6 @@ class DivisionRecommendationSystem:
                 'copywriting', 'storytelling', 'scriptwriting', 'content writing',
                 'youtube', 'instagram', 'tiktok', 'facebook', 'twitter', 'linkedin',
                 'marketing digital', 'facebook ads',
-                # Bahasa Indonesia - Media Creation
                 'desain grafis', 'desainer grafis', 'editing video', 'editor video',
                 'fotografi', 'fotografer', 'videografi', 'videographer', 'animator',
                 'animasi', 'motion graphic', 'konten kreator', 'pembuat konten',
@@ -65,13 +63,12 @@ class DivisionRecommendationSystem:
                 'influencer', 'youtuber', 'blogger', 'vlogger', 'streamer',
                 'marketing', 'promosi', 'iklan', 'advertising', 'kampanye',
                 'ui designer', 'ux designer', 'web designer', 'tipografi',
-                # Penambahan Keyword Baru (dari solusi sebelumnya)
                 'desain', 'editing', 'editor', 'poster', 'kameramen', 'product design',
                 'manajer desain', 'desain produk', 'kreativitas', 'visual', 'konten visual'
             ],
             
             'Education & Publishing (EnP)': [
-                # Education & Academic
+                # ... (daftar keyword tidak berubah)
                 'teacher', 'educator', 'instructor', 'lecturer', 'professor', 'tutor',
                 'curriculum', 'pedagogy', 'educational', 'teaching', 'training',
                 'learning management', 'e-learning', 'online learning', 'moodle',
@@ -86,7 +83,6 @@ class DivisionRecommendationSystem:
                 'latex', 'mendeley', 'zotero', 'endnote', 'citation', 'bibliography',
                 'academic writing', 'technical writing', 'documentation',
                 'knowledge management', 'library science', 'information science',
-                # Bahasa Indonesia - Education & Publishing
                 'guru', 'pengajar', 'dosen', 'instruktur', 'pendidik', 'tutor',
                 'pendidikan', 'pembelajaran', 'mengajar', 'pelatihan', 'training',
                 'kurikulum', 'silabus', 'rencana pembelajaran', 'bahan ajar',
@@ -103,7 +99,7 @@ class DivisionRecommendationSystem:
             ],
             
             'Administration & Finance': [
-                # Finance & Accounting
+                # ... (daftar keyword tidak berubah)
                 'accounting', 'bookkeeping', 'financial', 'finance', 'budget',
                 'auditing', 'tax', 'payroll', 'invoice', 'receipt', 'expenses',
                 'revenue', 'profit', 'loss', 'balance sheet', 'income statement',
@@ -121,7 +117,6 @@ class DivisionRecommendationSystem:
                 'customer service', 'client relations', 'communication',
                 'microsoft excel', 'spreadsheet', 'pivot table', 'vlookup',
                 'financial modeling', 'forecasting', 'reporting', 'dashboard',
-                # Bahasa Indonesia - Administration & Finance
                 'akuntansi', 'akuntan', 'keuangan', 'finansial', 'anggaran', 'budget',
                 'audit', 'auditor', 'pajak', 'tax', 'gaji', 'payroll', 'invoice',
                 'faktur', 'kwitansi', 'pengeluaran', 'pendapatan', 'keuntungan',
@@ -168,7 +163,7 @@ class DivisionRecommendationSystem:
         return cls_token.squeeze().cpu().numpy()
 
     def get_recommendations(self, cv_path, certificate_paths=None):
-        # --- LANGKAH 1: EKSTRAK SEMUA TEKS DARI CV DAN SERTIFIKAT ---
+        # --- LANGKAH 1: EKSTRAK SEMUA TEKS ---
         full_text = self.extract_text(cv_path)
         if certificate_paths:
             for path in certificate_paths:
@@ -177,7 +172,7 @@ class DivisionRecommendationSystem:
         cleaned_full_text = self.clean_text(full_text)
         user_vector = self.get_cls_embedding(cleaned_full_text)
 
-        # --- LANGKAH 2: HITUNG SKOR AWAL BERDASARKAN KEMIRIPAN ---
+        # --- LANGKAH 2: HITUNG SKOR AWAL ---
         results = []
         for div, keywords in self.divisions.items():
             nama_divisi = div.split('(')[0].strip()
@@ -187,31 +182,44 @@ class DivisionRecommendationSystem:
             similarity = cosine_similarity([user_vector], [desc_vec])[0][0]
             results.append({'divisi': div, 'skor': similarity})
 
-        # --- LANGKAH 3: LOGIKA PENDORONG SKOR (POST-PROCESSING) ---
-        # Daftar "Keyword Pemicu" yang sangat spesifik untuk Media Creation
+        # --- LANGKAH 3: LOGIKA PENDORONG SKOR GANDA ---
+        
+        # --- PENDORONG UNTUK MEDIA CREATION ---
         mc_trigger_keywords = [
             'photoshop', 'illustrator', 'premiere', 'after effects', 'final cut',
             'editing video', 'desain grafis', 'fotografi', 'videografi',
-            'kameramen', 'animasi', 'blender', 'figma'
+            'kameramen', 'animasi', 'blender', 'figma', 'multimedia'
         ]
         
-        # Hitung berapa banyak keyword pemicu yang ada di CV
-        trigger_count = 0
+        mc_trigger_count = 0
         for keyword in mc_trigger_keywords:
             if keyword in cleaned_full_text:
-                trigger_count += 1
+                mc_trigger_count += 1
         
-        # Jika ditemukan cukup banyak (misal: 3 atau lebih), berikan bonus
-        if trigger_count >= 3:
+        if mc_trigger_count >= 3:
             for res in results:
                 if res['divisi'] == 'Media Creation (MC)':
-                    # Berikan "dorongan" sebesar 5% dari skor maksimum
-                    # Ini akan secara efektif menjadikannya nomor 1 jika skornya sudah dekat
-                    res['skor'] *= 1.05
-                    break # Keluar dari loop setelah bonus diberikan
+                    res['skor'] *= 1.10
+                    break
         
+        # --- PENDORONG BARU UNTUK ADMINISTRATION & FINANCE ---
+        admin_trigger_keywords = [
+            'sekretaris', 'administrasi', 'surat menyurat', 'pengarsipan',
+            'menyusun laporan', 'dokumentasi', 'menjadwalkan rapat'
+        ]
+
+        admin_trigger_count = 0
+        for keyword in admin_trigger_keywords:
+            if keyword in cleaned_full_text:
+                admin_trigger_count += 1
+
+        if admin_trigger_count >= 3:
+            for res in results:
+                if res['divisi'] == 'Administration & Finance':
+                    res['skor'] *= 1.10 # Diberi bonus sedikit lebih tinggi (10%) untuk kepastian
+                    break
+
         # --- LANGKAH 4: URUTKAN HASIL AKHIR ---
-        # Konversi kembali ke format tuple yang diharapkan
         final_results = [(res['divisi'], res['skor']) for res in results]
         final_results.sort(key=lambda x: x[1], reverse=True)
         
