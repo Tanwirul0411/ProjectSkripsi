@@ -1,6 +1,6 @@
 # model.py
 import os
-import fitz
+import fitz  # PyMuPDF
 import re
 import torch
 from transformers import BertTokenizer, BertModel
@@ -64,7 +64,10 @@ class DivisionRecommendationSystem:
                 'copywriter', 'penulis konten', 'content writer', 'storytelling',
                 'influencer', 'youtuber', 'blogger', 'vlogger', 'streamer',
                 'marketing', 'promosi', 'iklan', 'advertising', 'kampanye',
-                'ui designer', 'ux designer', 'web designer', 'tipografi'
+                'ui designer', 'ux designer', 'web designer', 'tipografi',
+                # Penambahan Keyword Baru (dari solusi sebelumnya)
+                'desain', 'editing', 'editor', 'poster', 'kameramen', 'product design',
+                'manajer desain', 'desain produk', 'kreativitas', 'visual', 'konten visual'
             ],
             
             'Education & Publishing (EnP)': [
@@ -140,13 +143,16 @@ class DivisionRecommendationSystem:
 
     def extract_text(self, pdf_path):
         text = ""
-        doc = fitz.open(pdf_path)
-        for page in doc:
-            text += page.get_text()
+        try:
+            doc = fitz.open(pdf_path)
+            for page in doc:
+                text += page.get_text()
+        except Exception as e:
+            print(f"Error processing {pdf_path}: {e}")
         return text
 
     def clean_text(self, text):
-        if not isinstance(text, str):  # Hindari error jika bukan string
+        if not isinstance(text, str):
             return ""
         text = text.lower()
         text = re.sub(r'\n+', ' ', text)
@@ -155,26 +161,58 @@ class DivisionRecommendationSystem:
         return text
 
     def get_cls_embedding(self, text):
-        inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+        inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512, padding=True)
         with torch.no_grad():
             outputs = self.model(**inputs)
-        cls_token = outputs.last_hidden_state[:, 0, :]  # [CLS] token vector
+        cls_token = outputs.last_hidden_state[:, 0, :]
         return cls_token.squeeze().cpu().numpy()
 
     def get_recommendations(self, cv_path, certificate_paths=None):
+        # --- LANGKAH 1: EKSTRAK SEMUA TEKS DARI CV DAN SERTIFIKAT ---
         full_text = self.extract_text(cv_path)
         if certificate_paths:
             for path in certificate_paths:
                 full_text += " " + self.extract_text(path)
-        cleaned_text = self.clean_text(full_text)
-        user_vector = self.get_cls_embedding(cleaned_text)
 
+        cleaned_full_text = self.clean_text(full_text)
+        user_vector = self.get_cls_embedding(cleaned_full_text)
+
+        # --- LANGKAH 2: HITUNG SKOR AWAL BERDASARKAN KEMIRIPAN ---
         results = []
-        for div, desc in self.divisions.items():
-            desc_text = " ".join(desc)  # 
+        for div, keywords in self.divisions.items():
+            nama_divisi = div.split('(')[0].strip()
+            desc_text = f"Kandidat untuk divisi {nama_divisi} harus memiliki keahlian dalam bidang berikut: {', '.join(keywords)}."
+            
             desc_vec = self.get_cls_embedding(self.clean_text(desc_text))
             similarity = cosine_similarity([user_vector], [desc_vec])[0][0]
-            results.append((div, similarity))
+            results.append({'divisi': div, 'skor': similarity})
 
-        results.sort(key=lambda x: x[1], reverse=True)
-        return results
+        # --- LANGKAH 3: LOGIKA PENDORONG SKOR (POST-PROCESSING) ---
+        # Daftar "Keyword Pemicu" yang sangat spesifik untuk Media Creation
+        mc_trigger_keywords = [
+            'photoshop', 'illustrator', 'premiere', 'after effects', 'final cut',
+            'editing video', 'desain grafis', 'fotografi', 'videografi',
+            'kameramen', 'animasi', 'blender', 'figma'
+        ]
+        
+        # Hitung berapa banyak keyword pemicu yang ada di CV
+        trigger_count = 0
+        for keyword in mc_trigger_keywords:
+            if keyword in cleaned_full_text:
+                trigger_count += 1
+        
+        # Jika ditemukan cukup banyak (misal: 3 atau lebih), berikan bonus
+        if trigger_count >= 3:
+            for res in results:
+                if res['divisi'] == 'Media Creation (MC)':
+                    # Berikan "dorongan" sebesar 5% dari skor maksimum
+                    # Ini akan secara efektif menjadikannya nomor 1 jika skornya sudah dekat
+                    res['skor'] *= 1.05
+                    break # Keluar dari loop setelah bonus diberikan
+        
+        # --- LANGKAH 4: URUTKAN HASIL AKHIR ---
+        # Konversi kembali ke format tuple yang diharapkan
+        final_results = [(res['divisi'], res['skor']) for res in results]
+        final_results.sort(key=lambda x: x[1], reverse=True)
+        
+        return final_results
