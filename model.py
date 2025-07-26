@@ -76,7 +76,7 @@ class DivisionRecommendationSystem:
                 'content development', 'textbook', 'course material', 'syllabus',
                 'lesson plan', 'educational content', 'training material',
                 'workshop', 'seminar', 'conference', 'presentation', 'public speaking',
-                'microsoft office', 'google docs', 'penulisan', 'shortcut'
+                'microsoft office', 'google docs', 'penulisan', 'shortcut',
                 'latex', 'mendeley', 'zotero', 'endnote', 'citation', 'bibliography',
                 'academic writing', 'technical writing', 'documentation',
                 'knowledge management', 'library science', 'information science',
@@ -184,71 +184,54 @@ class DivisionRecommendationSystem:
 
         # --- LANGKAH 3: LOGIKA PENDORONG SKOR UNTUK SEMUA DIVISI ---
         
-        # --- PENDORONG UNTUK IT ---
+        # Cek Pemicu IT
         it_trigger_keywords = [
-            'backend', 'frontend', 'full stack', 'devops', 'programmer',
+            'backend', 'frontend', 'full stack', 'studio code', 'programmer',
             'software engineer', 'network engineer', 'keamanan siber', 'jaringan komputer'
         ]
-        it_trigger_count = 0
-        for keyword in it_trigger_keywords:
-            if keyword in cleaned_full_text:
-                it_trigger_count += 1
+        it_trigger_count = sum(1 for keyword in it_trigger_keywords if keyword in cleaned_full_text)
         
-        if it_trigger_count >= 2: # Cukup 2 untuk IT karena istilahnya sangat spesifik
-            for res in results:
-                if res['divisi'] == 'Information Technology (IT)':
-                    res['skor'] *= 1.10
-                    break
-
-        # --- PENDORONG UNTUK MEDIA CREATION ---
+        # Cek Pemicu Media Creation
         mc_trigger_keywords = [
             'photoshop', 'illustrator', 'premiere', 'after effects', 'final cut',
-            'editing video', 'desain grafis', 'fotografi', 'videografi',
-            'kameramen', 'animasi', 'blender', 'figma', 'multimedia'
+            'editing video', 'video editor', 'desain grafis', 'graphic design', 'fotografi', 'videografi',
+            'kameramen', 'animasi', 'blender', 'figma', 'multimedia', 'corel draw', 'editing', 'design'
         ]
-        mc_trigger_count = 0
-        for keyword in mc_trigger_keywords:
-            if keyword in cleaned_full_text:
-                mc_trigger_count += 1
-        
-        if mc_trigger_count >= 3:
-            for res in results:
-                if res['divisi'] == 'Media Creation (MC)':
-                    res['skor'] *= 1.10
-                    break
-        
-        # --- PENDORONG UNTUK ADMINISTRATION & FINANCE ---
-        admfin_trigger_keywords = [
+        mc_trigger_count = sum(1 for keyword in mc_trigger_keywords if keyword in cleaned_full_text)
+
+        # Cek Pemicu Administrasi & Keuangan
+        admin_trigger_keywords = [
             'sekretaris', 'bendahara', 'administrasi', 'surat menyurat', 'pengarsipan',
             'menyusun laporan', 'dokumentasi', 'pajak', 'akuntansi', 'akuntan', 
             'pembukuan', 'laporan keuangan', 'finansial', 'anggaran', 'audit', 'faktur'
         ]
-        admin_trigger_count = 0
-        for keyword in admfin_trigger_keywords:
-            if keyword in cleaned_full_text:
-                admin_trigger_count += 1
+        admin_trigger_count = sum(1 for keyword in admin_trigger_keywords if keyword in cleaned_full_text)
 
-        if admin_trigger_count >= 3:
-            for res in results:
-                if res['divisi'] == 'Administration & Finance':
-                    res['skor'] *= 1.10
-                    break
-        
-        # --- PENDORONG UNTUK EDUCATION & PUBLISHING ---
+        # Cek Pemicu Education & Publishing
         enp_trigger_keywords = [
             'guru', 'pengajar', 'dosen', 'instruktur', 'pendidik', 'jurnal',
-            'publikasi', 'silabus', 'pelatihan', 'mengajar', 'penulis', 'editor'
+            'publikasi', 'silabus', 'pelatihan', 'mengajar', 'penulis', 'editor',
+            'karya tulis ilmiah', 'riset', 'peneliti'
         ]
-        enp_trigger_count = 0
-        for keyword in enp_trigger_keywords:
-            if keyword in cleaned_full_text:
-                enp_trigger_count += 1
+        enp_trigger_count = sum(1 for keyword in enp_trigger_keywords if keyword in cleaned_full_text)
 
-        if enp_trigger_count >= 3:
+        # Terapkan Bonus dan Penalti berdasarkan divisi terkuat
+        strong_candidate_division = None
+        if mc_trigger_count >= 3:
+            strong_candidate_division = 'Media Creation (MC)'
+        elif admin_trigger_count >= 3:
+            strong_candidate_division = 'Administration & Finance'
+        elif it_trigger_count >= 2:
+            strong_candidate_division = 'Information Technology (IT)'
+        elif enp_trigger_count >= 3:
+            strong_candidate_division = 'Education & Publishing (EnP)'
+
+        if strong_candidate_division:
             for res in results:
-                if res['divisi'] == 'Education & Publishing (EnP)':
+                if res['divisi'] == strong_candidate_division:
                     res['skor'] *= 1.10
-                    break
+                else:
+                    res['skor'] *= 0.90
 
         # --- LANGKAH 4: URUTKAN HASIL AKHIR ---
         final_results = [(res['divisi'], res['skor']) for res in results]
