@@ -11,7 +11,7 @@ from excel_generator import create_excel_report # <-- 1. Import fungsi baru
 # --- Konfigurasi Halaman ---
 st.set_page_config(
     page_title="Sistem Rekomendasi Divisi",
-    page_icon="✨"
+    page_icon="img/itcc_icon.png"
 )
 
 # --- Inisialisasi ---
@@ -32,10 +32,10 @@ st.markdown("Studi Kasus: **ITCC ITPLN**")
 st.markdown("---")
 
 # --- Formulir Input ---
-st.header("👤 Informasi Kandidat")
+st.header("Informasi Kandidat")
 with st.form("upload_form"):
-    nama = st.text_input("Nama Kandidat", placeholder="Masukkan nama kandidat...")
-    email = st.text_input("Email (Opsional)", placeholder="contoh@email.com...")
+    nama = st.text_input("Nama Kandidat", placeholder="Masukkan nama kandidat")
+    email = st.text_input("Email (Opsional)", placeholder="contoh@email.com")
     cv_file = st.file_uploader("Unggah CV (Wajib, format PDF)", type="pdf")
     
     sertif_files = st.file_uploader(

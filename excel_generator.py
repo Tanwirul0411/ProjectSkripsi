@@ -25,7 +25,7 @@ def create_excel_report(nama_kandidat, data_hasil):
         workbook = writer.book
         
         # Tambahkan sheet baru untuk chart (sebagai chartsheet)
-        chartsheet = workbook.add_chartsheet('Diagram Batang')
+        chartsheet = workbook.add_chartsheet('Chart Bar Rekomendasi')
 
         # Buat objek chart baru
         chart = workbook.add_chart({'type': 'bar'})
