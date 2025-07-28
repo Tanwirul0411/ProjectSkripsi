@@ -48,3 +48,19 @@ def save_document(user_id, jenis, filename, path_file):
               (user_id, jenis, filename, path_file))
     conn.commit()
     conn.close()
+
+def get_user_info_by_id(user_id):
+    """Mengambil nama, email, dan tanggal upload dari database berdasarkan user_id."""
+    conn = None
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        c.execute("SELECT nama, email, tanggal_upload FROM users WHERE id = ?", (user_id,))
+        user_data = c.fetchone()
+        return user_data
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()

@@ -1,12 +1,13 @@
+# app.py
 import streamlit as st
 import os
 from model import DivisionRecommendationSystem
-from db import init_db, save_user, save_document
+from db import init_db, save_user, save_document, get_user_info_by_id
 import pandas as pd
 import matplotlib.pyplot as plt
 import io
 import time
-from excel_generator import create_excel_report # <-- 1. Import fungsi baru
+from excel_generator import create_excel_report
 
 # --- Konfigurasi Halaman ---
 st.set_page_config(
@@ -46,7 +47,6 @@ with st.form("upload_form"):
     
     submitted = st.form_submit_button("🚀 Rekomendasikan")
 
-# --- Garis pemisah untuk hasil ---
 st.markdown("---")
 
 # --- Logika Pemrosesan dan Tampilan Hasil ---
@@ -59,28 +59,34 @@ if submitted:
             sertif_files = sertif_files[:3]
 
         with st.spinner('Harap Tunggu, Sedang menganalisis profil kandidat...'):
-            time.sleep(2)
-            
+            # Simpan data user ke DB
             user_id = save_user(nama, email)
 
+            # Simpan file-file yang diunggah
             cv_path = os.path.join("CV_Mahasiswa", cv_file.name)
-            with open(cv_path, "wb") as f:
-                f.write(cv_file.getbuffer())
+            with open(cv_path, "wb") as f: f.write(cv_file.getbuffer())
             save_document(user_id, "CV", cv_file.name, cv_path)
 
             cert_paths = []
             for cert in sertif_files:
                 cert_path = os.path.join("Sertif_Mahasiswa", cert.name)
-                with open(cert_path, "wb") as f:
-                    f.write(cert.getbuffer())
+                with open(cert_path, "wb") as f: f.write(cert.getbuffer())
                 cert_paths.append(cert_path)
                 save_document(user_id, "Sertifikat", cert.name, cert_path)
 
+            # Dapatkan hasil dari model NLP
             hasil = rekomendasi.get_recommendations(cv_path, cert_paths)
             hasil_persen = [(div, score * 100) for div, score in hasil]
             top_divisi, top_score = hasil_persen[0]
 
-        st.success(f"✅ Analisis untuk **{nama}** selesai!")
+            # Ambil info lengkap dari DB untuk laporan
+            user_info = get_user_info_by_id(user_id)
+            if user_info:
+                nama_db, email_db, tanggal_db = user_info
+            else:
+                nama_db, email_db, tanggal_db = nama, email, "N/A"
+
+        st.success(f"✅ Analisis untuk **{nama_db}** selesai!")
         
         st.header("🎯 Hasil Rekomendasi")
         st.subheader(f"Rekomendasi Utama: **{top_divisi}**")
@@ -88,9 +94,11 @@ if submitted:
         st.markdown(f"Tingkat kecocokan mencapai **{top_score:.2f}%**.")
         
         with st.expander("📊 Lihat Rincian Skor dan Grafik"):
+            # === BAGIAN YANG DIKEMBALIKAN SEPERTI SEMULA ===
             st.subheader("📋 Rincian Skor")
             for div, score in hasil_persen:
                 st.write(f"**{div}**: {score:.2f}%")
+            # ===============================================
 
             st.subheader("Visualisasi")
             df = pd.DataFrame(hasil_persen, columns=["Divisi", "Skor (%)"])
@@ -101,13 +109,18 @@ if submitted:
             ax.set_title("Grafik Kecocokan Divisi")
             st.pyplot(fig)
 
-        # --- 2. Panggil fungsi untuk membuat Excel ---
-        excel_data = create_excel_report(nama, hasil_persen)
+        # Panggil fungsi untuk membuat Excel dengan data dari DB
+        excel_data = create_excel_report(
+            nama_kandidat=nama_db,
+            email_kandidat=email_db,
+            tanggal_rekomendasi=tanggal_db,
+            data_hasil=hasil_persen
+        )
 
         st.download_button(
             label="⬇️ Unduh Laporan Hasil (.xlsx)",
             data=excel_data,
-            file_name=f"Hasil_Rekomendasi_{nama.replace(' ', '_')}.xlsx",
+            file_name=f"Hasil_Rekomendasi_{nama_db.replace(' ', '_')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 else:
