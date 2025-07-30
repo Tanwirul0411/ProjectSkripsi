@@ -90,7 +90,8 @@ if submitted:
         
         st.header("🎯 Hasil Rekomendasi")
         st.subheader(f"Rekomendasi Utama: **{top_divisi}**")
-        st.progress(int(top_score))
+        progress_value = min(int(top_score), 100)
+        st.progress(progress_value)
         st.markdown(f"Tingkat kecocokan mencapai **{top_score:.2f}%**.")
         
         with st.expander("📊 Lihat Rincian Skor dan Grafik"):
