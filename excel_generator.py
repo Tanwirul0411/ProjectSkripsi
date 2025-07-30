@@ -58,6 +58,13 @@ def create_excel_report(nama_kandidat, email_kandidat, tanggal_rekomendasi, data
             'name':       f"='{sheet_name_data}'!$B$6",
             'categories': f"='{sheet_name_data}'!$A$7:$A${num_rows + 6}",
             'values':     f"='{sheet_name_data}'!$B$7:$B${num_rows + 6}",
+
+            'data_labels': {
+                'value': True, 
+                'position': 'inside_end',
+                'num_format': '0.00"%"', 
+                'font': {'color': 'white', 'bold': True} 
+            }
         })
 
         chart.set_title({'name': f'Hasil Rekomendasi untuk {nama_kandidat}'})

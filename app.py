@@ -103,11 +103,16 @@ if submitted:
 
             st.subheader("Visualisasi")
             df = pd.DataFrame(hasil_persen, columns=["Divisi", "Skor (%)"])
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots() 
             bars = ax.barh(df["Divisi"], df["Skor (%)"], color='skyblue')
             ax.invert_yaxis()
             ax.set_xlabel("Skor (%)")
             ax.set_title("Grafik Kecocokan Divisi")
+            for bar in bars:
+                width = bar.get_width()
+                label_x_pos = width - (width * 0.15) # Posisi 15% dari ujung dalam
+                ax.text(label_x_pos, bar.get_y() + bar.get_height()/2, f'{width:.2f}%', 
+                        va='center', ha='left', color='white', fontweight='bold')
             st.pyplot(fig)
 
         # Panggil fungsi untuk membuat Excel dengan data dari DB
