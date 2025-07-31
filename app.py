@@ -95,7 +95,7 @@ if submitted:
         st.markdown(f"Tingkat kecocokan mencapai **{top_score:.2f}%**.")
         
         with st.expander("📊 Lihat Rincian Skor dan Grafik"):
-            # === BAGIAN YANG DIKEMBALIKAN SEPERTI SEMULA ===
+            # Expander Untuk Menampilkan Rincian
             st.subheader("📋 Rincian Skor")
             for div, score in hasil_persen:
                 st.write(f"**{div}**: {score:.2f}%")
@@ -110,7 +110,7 @@ if submitted:
             ax.set_title("Grafik Kecocokan Divisi")
             for bar in bars:
                 width = bar.get_width()
-                label_x_pos = width - (width * 0.15) # Posisi 15% dari ujung dalam
+                label_x_pos = width - (width * 0.20)
                 ax.text(label_x_pos, bar.get_y() + bar.get_height()/2, f'{width:.2f}%', 
                         va='center', ha='left', color='white', fontweight='bold')
             st.pyplot(fig)
