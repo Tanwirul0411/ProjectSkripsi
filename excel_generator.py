@@ -38,6 +38,8 @@ def create_excel_report(nama_kandidat, email_kandidat, tanggal_rekomendasi, data
         
         worksheet_data.write('A2', 'Waktu Rekomendasi:', format_header)
         worksheet_data.write('B2', waktu_saja)
+        
+        format_persen = workbook.add_format({'num_format': '0.00%', 'font_size': 11})
 
         worksheet_data.write('A3', 'Nama Kandidat:', format_header)
         worksheet_data.write('B3', nama_kandidat)
@@ -46,7 +48,7 @@ def create_excel_report(nama_kandidat, email_kandidat, tanggal_rekomendasi, data
         worksheet_data.write('B4', email_kandidat if email_kandidat else 'Tidak diisi')
         
         worksheet_data.set_column('A:A', 25)
-        worksheet_data.set_column('B:B', 20)
+        worksheet_data.set_column('B:B', 20, format_persen)
 
         # --- Sheet 2: Chart Full Screen ---
         chartsheet = workbook.add_chartsheet(sheet_name_chart)
