@@ -7,6 +7,7 @@ from datetime import datetime
 def create_excel_report(nama_kandidat, email_kandidat, tanggal_rekomendasi, data_hasil):
 
     df_hasil = pd.DataFrame(data_hasil, columns=["Divisi", "Skor (%)"])
+    df_hasil['Skor (%)'] = df_hasil['Skor (%)'] / 100
     output = io.BytesIO()
 
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -64,7 +65,7 @@ def create_excel_report(nama_kandidat, email_kandidat, tanggal_rekomendasi, data
             'data_labels': {
                 'value': True, 
                 'position': 'inside_end',
-                'num_format': '0.00"%"', 
+                'num_format': '0.00%', 
                 'font': {'color': 'white', 'bold': True} 
             }
         })
